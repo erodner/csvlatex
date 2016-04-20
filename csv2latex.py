@@ -54,8 +54,11 @@ with open(args.input, 'r') as f:
 
     for line in csvf:
         strip_dict(line)
-        if len(rows)>0 and not line[first_col_name] in rows:
-            continue
+        if len(rows)>0:
+            if not line[first_col_name] in rows:
+                continue
+            else:
+                line[first_col_name] = rows[line[first_col_name]]
         if len(cols)>0:
             line = {k:line[k] for k in line if k in cols}
         values = [ line[k] for k in fields ]
