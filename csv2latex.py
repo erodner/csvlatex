@@ -41,7 +41,7 @@ def print_latex_table_footer():
 
 with open(args.input, 'r') as f:
     csvf = csv.DictReader(f)
-    first_col_name = csvf.fieldnames[0]
+    first_col_name = csvf.fieldnames[0].strip()
     
     if len(cols)>0:
         fields = cols.keys()
