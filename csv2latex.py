@@ -4,7 +4,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('input', help='input csv file')
 parser.add_argument('--rows')
 parser.add_argument('--cols')
-
+parser.add_argument('--colformats')
 
 args = parser.parse_args()
 
@@ -12,15 +12,17 @@ import csv
 import json
 import collections
 
-if not args.rows is None:
-    rows = json.load(open(args.rows, 'r'), object_pairs_hook=collections.OrderedDict)
-else:
-    rows = {}
+def load_json_dict(fn):
+    if not fn is None:
+        my_dict = json.load(open(fn, 'r'), object_pairs_hook=collections.OrderedDict)
+    else:
+        my_dict = {}
+    return my_dict
 
-if not args.cols is None:
-    cols = json.load(open(args.cols, 'r'), object_pairs_hook=collections.OrderedDict)
-else:
-    cols = {}
+rows = load_json_dict(args.rows)
+cols = load_json_dict(args.cols)
+colformats = load_json_dict(args.colformats)
+
 
 def strip_dict(d):
     for k in d:
@@ -32,7 +34,8 @@ def print_latex_table_row(arr):
 def print_latex_table_header(arr):
     print ('\\begin{tabular}{l' + ('c' * (len(arr)-1)) + '}')
     print ('\\toprule')
-    print_latex_table_row(arr)
+    arrn = [ '\\textbf{' + v + '}' for v in arr ]
+    print_latex_table_row(arrn)
     print ('\\midrule')
 
 def print_latex_table_footer():
@@ -61,7 +64,16 @@ with open(args.input, 'r') as f:
                 line[first_col_name] = rows[line[first_col_name]]
         if len(cols)>0:
             line = {k:line[k] for k in line if k in cols}
-        values = [ line[k] for k in fields ]
+
+        values = []
+        for k in fields:
+            if k in colformats:
+                try:
+                    values.append(colformats[k].format(line[k]))
+                except ValueError:
+                    values.append(colformats[k].format(float(line[k])))
+            else:
+                values.append(line[k])
         print_latex_table_row(values)
 
     print_latex_table_footer()
